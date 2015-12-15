@@ -32,8 +32,11 @@ use org wixel pinout atached directly to pi
 
 Wixel / Pi Pin connections
 Wixel TX  Pin 1_6 -> PI GPIO PIN 10 RX
+
 Wixel RX  Pin 1_7 -> PI GPIO PIN  8 TX
+
 Wixel 3V3 Pin     -> PI GPIO Pin 17 3v3 Power
+
 Wixel GND Pin     -> PI GPIO Pin 14 GND
 
 

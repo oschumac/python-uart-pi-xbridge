@@ -15,15 +15,18 @@ Todo -> 3 Steps are in my mind
 
 # to get Started you will need to:
 1. deactivate ttyAMA0 on Kernel via raspconfig
-   Otherwise the one and only UART us used for Kernel messages and login
+   Otherwise the one and only UART is used for Kernel messages and login
 
-2. Programm wixel xbridge with the small changes as descripted in the head of  Wixel.py
+2. Programm wixel xBridge2 with the small changes as descripted in the head of  Wixel.py
+   See -> https://github.com/jstevensog/wixel-sdk
 
 3. Connect Wixel to pi via GPIO
+   See -> Hardware
 
 4. Use Wixel.py for test. Put your Transmitter ID as an constant in the Script.
-   you maybe have to uncommend sendScreen() if you don't have a adafruit display atached to the pi.
+   You may have to uncommend sendScreen() if you don't have a adafruit display atached to the pi.
 
+5. Take the red pill and stay in Wonderland. :-)
 
 
 

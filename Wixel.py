@@ -34,13 +34,13 @@
 #	}
 # }
 
-
 import json
 import socket
 import sys
 import time
 import os
 import array
+import math
 from thread import *
 
 import serial
@@ -49,7 +49,9 @@ HOST = ''   # All
 PORT = 50005 # xdrip standard port
 
 
-my_TransmitterID="12345";
+
+my_TransmitterID="6DGTF";
+# my_TransmitterID="66PNX";
 Bridge_Tid="";
 
 # Eigenes PID file fuer Service
@@ -75,9 +77,24 @@ mydata = { "TransmitterId":"0","_id":1,"CaptureDateTime":0,"RelativeTime":0,"Rec
 SrcNameTable = ( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F','G', 'H', 'J', 'K', 'L', 'M', 'N', 'P','Q', 'R', 'S', 'T', 'U', 'W', 'X', 'Y' );
 
 
+BG=0
+LASTBG=0
 
 SrcNameTable = ( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F','G', 'H', 'J', 'K', 'L', 'M', 'N', 'P','Q', 'R', 'S', 'T', 'U', 'W', 'X', 'Y' );
 
+def calculateAgeAdjustedRawValue(hourssince, raw_data):
+	
+	
+	adjust_for = (86400000 * 1.9) - (hourssince*60*60*1000)
+	print "Adjust for -> " + str(adjust_for)
+	if adjust_for > 0:
+		age_adjusted_raw_value = (((.45) * (adjust_for / (86400000 * 1.9))) * raw_data) + raw_data
+		print "RAW VALUE ADJUSTMENT: FROM:" + str(raw_data) + " TO: " + str(age_adjusted_raw_value)
+		return age_adjusted_raw_value
+	else:
+		print "RAW VALUE ADJUSTMENT: FROM:" + str(raw_data) + " TO: " + str(raw_data)
+		return raw_data
+		
 def getSrcValue(srcVal):
 	i = 0;
 	while i<32:
@@ -119,9 +136,8 @@ def mergebyteint(data):
 	number |= (long(data[1]) << 15);
 	number |= (long(data[2]) << 10);
 	number |= (long(data[3]) << 5);
-	return number
-	
-	
+	return number	
+    
 	
 def sendScreen():
 	disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, dc=DC, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=8000000))
@@ -136,14 +152,17 @@ def sendScreen():
 	
 	image = Image.new('1', (width, height))
 	# Load default font.
-	font = ImageFont.load_default()
+	# font = ImageFont.load_default()
+	font = ImageFont.truetype('Verdana.ttf', 12)
+	BGD=BG-LASTBG
 	
 	draw = ImageDraw.Draw(image)
 	draw.text((x, top),    '* TEST *',  font=font, fill=255)
-	draw.text((x, top+12), 'Raw: '+ str(mydata['RawValue']), font=font, fill=255)
-	draw.text((x, top+24), 'Filtered:' + str(mydata['FilteredValue']), font=font, fill=255)
-	draw.text((x, top+36), 'SignalStrength: ' + str(mydata['ReceivedSignalStrength']), font=font, fill=255)
-	draw.text((x, top+48), 'TiD->' + dexcom_src_to_asc(mydata['TransmitterId']) , font=font, fill=255)
+	#draw.text((x, top+12), 'Raw: '+ str(mydata['RawValue']), font=font, fill=255)
+	draw.text((x, top+12), 'CGM   : ' + str(BG) + '(' + str(BGD) + ')' , font=font, fill=255)
+	draw.text((x, top+24), 'DexBat: ' + str(mydata['BatteryLife']), font=font, fill=255)
+	draw.text((x, top+36), 'Signal: ' + str(mydata['ReceivedSignalStrength']), font=font, fill=255)
+	draw.text((x, top+48), 'Dex ID: ' + dexcom_src_to_asc(mydata['TransmitterId']) , font=font, fill=255)
 
 	# Display image.
 	disp.image(image)
@@ -155,6 +174,8 @@ def sendScreen():
 
 def serialthread(dummy):
 	global mydata
+	global BG
+	global LASTBG
 	print "start serial com"
 	firstrun=True 
 	while 1:
@@ -229,34 +250,52 @@ def serialthread(dummy):
 				mydata['RawValue']=str(int(ord(serial_line[2])+(ord(serial_line[3])*256)+(ord(serial_line[4])*65536)+(ord(serial_line[5])*16777216)))
 				mydata['FilteredValue']=str(int(ord(serial_line[6])+(ord(serial_line[7])*256)+(ord(serial_line[8])*65536)+(ord(serial_line[9])*16777216)))
 
-				scale = 1.0
-				intercept = 39.0
-				slope = 1200.0
-					
+				slope=860.0
+				intercept=17.85
+				scale=1.0
 				
-				# scale * (xxx - intercept)/slope
 				print "raw BG" + str((int(mydata['RawValue'])-intercept)/slope)
 				print "Filtered BG" + str((int(mydata['FilteredValue'])-intercept)/slope)
 				
 				
 				# SGV=`awk -v r=$RAW -v f=$FILTERED -v s=$SLOPE -v i=$INT -v c=$SCALE 'BEGIN { printf "%2.0f\n", c*(((r+f)/2)-i)/s }'`
 				# Ochenmillers implementation
-				print "OM BG" + str((((scale*(int(mydata['FilteredValue'])+int(mydata['RawValue']))/2))-intercept)/slope)
-
-				print "OM BG RAW" + str(((int(mydata['RawValue']))-intercept)/slope)
-				print "OM BG SGV" + str(((int(mydata['FilteredValue']))-intercept)/slope)
+				# print "OM BG" + str((((scale*(int(mydata['FilteredValue'])+int(mydata['RawValue']))/2))-intercept)/slope)
+				# print "OM BG RAW" + str(((int(mydata['RawValue']))-intercept)/slope)
+				# print "OM BG SGV" + str(((int(mydata['FilteredValue']))-intercept)/slope)
 				
 				
 				# bgReading.calculated_value = ((calibration.slope * bgReading.age_adjusted_raw_value) + calibration.intercept);
 				raw_data=int(mydata['RawValue'])
 				filtered_data=int(mydata['FilteredValue'])
-				bg=(slope*(raw_data))+intercept
+				bg=(slope/1000*(raw_data/1000))+intercept
 				print "xdrip BG ->" + str(bg)
 				
 				# bgReading.calculated_value = (((calSlope * bgReading.raw_data) + calIntercept) - 5);
-				bg=((slope*(raw_data))+intercept)-5
+				bg=((slope/1000*(raw_data/1000))+intercept)-5
 				print "xdrip BG Dex->" + str(bg)
 				
+
+				BG_raw=int(mydata['RawValue'])
+				BG_filtered=int(mydata['RawValue'])
+
+				raw_data=calculateAgeAdjustedRawValue(49,BG_raw)
+
+                #################################################################################################################################
+				# bgReading.calculated_value = ((calibration.slope * bgReading.age_adjusted_raw_value) + calibration.intercept);
+				LASTBG=BG
+				BG=math.ceil((slope/1000*(raw_data/1000))+intercept)
+				print "1st xdrip BG w age adj.->" + str(BG)
+
+				#################################################################################################################################
+				slope=1300
+				intercept=-45.33
+				
+				bgn=(slope/1000*(raw_data/1000))+intercept
+				print "2nd xdrip BG w age adj.->" + str(bg)
+
+				
+
 				
 				mydata['BatteryLife']=str(ord(serial_line[10]))
 				BatterieLife=str(ord(serial_line[11]))
@@ -280,10 +319,10 @@ def serialthread(dummy):
 				print "Tid->"+dexcom_src_to_asc(mydata['TransmitterId'])
 				if dexcom_src_to_asc(mydata['TransmitterId'])==my_TransmitterID:
 					print "Found MY_ID->"+dexcom_src_to_asc(mydata['TransmitterId'])+"\n";
+					sendScreen()
 				else:
 					print "Found ID->"+dexcom_src_to_asc(mydata['TransmitterId'])+" MyID-> "+  my_TransmitterID +"\n";
 
-			sendScreen()
 			
 		except serial.serialutil.SerialException,e:
 			print "Serial exception ",e
@@ -325,7 +364,7 @@ def clientthread(conn):
 		if not data: 
 			break
 		decoded = json.loads(data)     
-		print json.dumps(decoded,sort_keys=True,indent=4)
+		# print json.dumps(decoded,sort_keys=True,indent=4)
 		
 		mydata['RelativeTime']=str((int(time.time())*1000)-int(mydata['CaptureDateTime']))
 
@@ -351,6 +390,8 @@ outpidf = open(PIDFILE,"w")
 outpidf.write("%s"% pid)
 outpidf.flush()        # make sure it actually gets written out
 outpidf.close
+BG=0
+LASTBG=0
 sendScreen()
 
 while 1:

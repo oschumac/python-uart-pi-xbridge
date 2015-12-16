@@ -163,7 +163,7 @@ def _mergebyteint(data):
     
 ########################################################## 
 #  sendScreen():
-#  Sends Textdata to Adafrout OLED Display 
+#  Sends Textdata to Adafrout OLED Display SPI
 #  
 	
 def sendScreen():
@@ -200,6 +200,13 @@ def sendScreen():
 	disp.display()
 
 
+########################################################## 
+#  send_TID_wixel(ser,Tid):
+#  sends Transmitter ID to Wixel
+#  is needed if Wixel sends Beacon Telgrammms or
+#  if aplication sens wixel sending wrong Tid's
+#  to correct Wixels behavour
+
 def send_TID_wixel(ser,Tid):
 	# 0 0x06 Number of bytes in the packet (6).
 	# 1 0x01 Code for Data Packet
@@ -218,6 +225,12 @@ def send_TID_wixel(ser,Tid):
 
 	ser.write(sendbytes)
 
+	
+########################################################## 
+#  send_ACK_wixel(ser):
+#  sends ACK Telegramm to Wixel
+#  is needed to ACK a Data Telegramm 
+#
 
 def send_ACK_wixel(ser):
 	sendbytes=[0]*2
@@ -226,38 +239,21 @@ def send_ACK_wixel(ser):
 	print "ACK Senden ->" + ":".join("{:02x}".format(c) for c in sendbytes)
 	ser.write(sendbytes)
 
-def calcCGMBG():
-	global BG
-	global LASTBG
-	slope=1300
-	intercept=-45.33
-
-	slope=860.0
-	intercept=17.85
-	scale=1.0
 	
-	# SGV=`awk -v r=$RAW -v f=$FILTERED -v s=$SLOPE -v i=$INT -v c=$SCALE 'BEGIN { printf "%2.0f\n", c*(((r+f)/2)-i)/s }'`
-	# Ochenmillers implementation
-	# print "OM BG" + str((((scale*(int(mydata['FilteredValue'])+int(mydata['RawValue']))/2))-intercept)/slope)
-	# print "OM BG RAW" + str(((int(mydata['RawValue']))-intercept)/slope)
-	# print "OM BG SGV" + str(((int(mydata['FilteredValue']))-intercept)/slope)
+########################################################## 
+#  calcCGMVAL(slope,intercept,BG_raw):
+#  Calc CGm Value from RAW
+#  needs Calibrationdata slope intercept and BG_RAW Value
+#  gives back calibration corrected BG
+
+def calcCGMVAL(slope,intercept,raw_data):
+	bg=(((slope*1.0)/1000)*(raw_data*1.0/1000))+(intercept*1.0)
+	print "xdrip raw_data ->" + str(raw_data/1000)
+	print "xdrip slope ->" + str(slope/1000)
+	print "xdrip intercept ->" + str(intercept)
+	print "xdrip BG ->" + str(bg)
+	return bg	
 	
-
-	BG_raw=int(mydata['RawValue'])
-	BG_filtered=int(mydata['RawValue'])
-
-	### Todo get the hours calculated
-	raw_data=calculateAgeAdjustedRawValue(49,BG_raw)
-
-	#################################################################################################################################
-	# bgReading.calculated_value = ((calibration.slope * bgReading.age_adjusted_raw_value) + calibration.intercept);
-	LASTBG=BG
-	BG=(slope/1000*(raw_data/1000))+intercept
-	print "1st xdrip BG w age adj.->" + str(BG)
-
-	#################################################################################################################################
-	
-
 	
 # threads
 
@@ -320,7 +316,15 @@ def serialthread(dummy):
 				send_ACK_wixel(ser)
 				
 				if dexcom_src_to_asc(mydata['TransmitterId'])==my_TransmitterID:
-					calcCGMBG()
+					slope=956
+					intercept=11.69
+					hours=66
+					
+					raw_data=calculateAgeAdjustedRawValue(hours,int(mydata['RawValue']))
+					LASTBG=BG
+					# calcCGMVAL(slope,intercept,raw_data):
+					BG=calcCGMVAL(slope,intercept,raw_data)
+					print "1st xdrip BG w age adj.->" + str(BG)
 					sendScreen()
 				else:
 					print "Error Found Wrong ID->"+dexcom_src_to_asc(mydata['TransmitterId'])+" MyID-> "+  my_TransmitterID +"\n";

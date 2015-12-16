@@ -2,9 +2,9 @@
 
 Hope you guys having fun with this Repo.
 It is not finished yet.
-Things working so far are wixel Python communication. (I think needs a bit more testing but runs well)
-Sending data as wifi/wixel to xdrip
-Calculate cgmBG based in xdrip calc and hardcoded intercept and slope
+Things working so far are wixel Python communication (I think needs a bit more testing but runs well).
+Sending data as wifi-wixel to xdrip.
+Calculate cgm Blood Glucose based of xdrip calc and hardcoded intercept and slope.
 
 Todo -> 3 Steps are in my mind
 
@@ -12,7 +12,7 @@ Todo -> 3 Steps are in my mind
 
 2. Start to generate an own calibration algorythm in the pi
    Would give the advantage for loopers to get BG from Bolus expert inputs out of the pump.
-   Pi could calculate the next calalibration without an other user attention or any other devices
+   Pi could calculate the next calalibration without any other user attention or any other devices
 
 3. Send data to mongo (BG,CAL) 
 

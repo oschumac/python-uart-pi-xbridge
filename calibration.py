@@ -324,7 +324,7 @@ class BGReadings_Data:
 		#print "BGReadings_Data initialisiert"
 		self._id=0
 		self.timestamp=0
-		self.DateTime='123456789'
+		self.DateTime=''
 		self.bg=0 
 		self.raw_value=0 
 		self.raw_timestamp=0 

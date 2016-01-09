@@ -42,7 +42,8 @@ import os
 import array
 import math
 from thread import *
-
+import datetime
+                    
 import serial
 
 # Project imports
@@ -108,25 +109,24 @@ def sendScreen():
 	top = padding
 	bottom = height-padding
 	x = 10
+
 	BGlatest=BGReadings_Data()
 	BGlatest.getlatest()
-	print "und noch mehr!!-> " + str(math.ceil(BGlatest.bg))
 
 	BGsecondlatest=BGReadings_Data()
 	BGsecondlatest.getsecondlatest()
-	print "und noch viel mehr!! ->" + '(' + str(BGlatest.bg-BGsecondlatest.bg) + ')'
 	
 	
 	image = Image.new('1', (width, height))
 	# Load default font.
 	# font = ImageFont.load_default()
-	font = ImageFont.truetype('Verdana.ttf', 12)
+	font = ImageFont.truetype('Verdana.ttf', 11)
 		
 	draw = ImageDraw.Draw(image)
 	draw.text((x, top),    '* TEST *',  font=font, fill=255)
 	#draw.text((x, top+12), 'Raw: '+ str(mydata['RawValue']), font=font, fill=255)
 	draw.text((x, top+12), 'CGM   : ' + str(math.ceil(BGlatest.bg)) + '(' + str(BGlatest.bg-BGsecondlatest.bg) + ')' , font=font, fill=255)
-	draw.text((x, top+24), 'DexBat: ' + str(mydata['BatteryLife']), font=font, fill=255)
+	draw.text((x, top+24), 'Zeit: ' + str(BGlatest.DateTime), font=font, fill=255)
 	draw.text((x, top+36), 'Signal: ' + str(mydata['ReceivedSignalStrength']), font=font, fill=255)
 	draw.text((x, top+48), 'Dex ID: ' + wixellib.dexcom_src_to_asc(mydata['TransmitterId']) , font=font, fill=255)
 
@@ -178,121 +178,131 @@ def send_ACK_wixel(ser):
 # threads
 
 def serialthread(dummy):
-	global mydata
-	global BG
-	global LASTBG
-	print "start serial com"
-	firstrun=True 
-	while 1:
-		try:
-			# sometimes the wixel reboots and comes back as a different
-			# device - this code seemed to catch that happening
-			# more complex code might be needed if the pi has other
-			# ACM type devices.
+    global mydata
+    global BG
+    global LASTBG
+    print "start serial com"
+    firstrun=True 
+    while 1:
+        try:
+            # sometimes the wixel reboots and comes back as a different
+            # device - this code seemed to catch that happening
+            # more complex code might be needed if the pi has other
+            # ACM type devices.
+            
+            ser = serial.Serial('/dev/ttyAMA0', 9600)
+            serial_line="00000"
 			
-			ser = serial.Serial('/dev/ttyAMA0', 9600)
-			serial_line="00000"
-			
-			if (firstrun==False):
-				serial_line = ser.readline()
-				print "Laenge->" + str(len(serial_line))
-				print "Daten Empfangen->" + ":".join("{:02x}".format(ord(c)) for c in serial_line)
-				if ord(serial_line[0])>len(serial_line):
-					print "Huston wir haben ein Prob"
-					serial_line="00000"
+            if (firstrun==False):
+                serial_line = ser.readline()
+                print "Laenge->" + str(len(serial_line))
+                print "Daten Empfangen->" + ":".join("{:02x}".format(ord(c)) for c in serial_line)
+                if ord(serial_line[0])>len(serial_line):
+                    print "Huston wir haben ein Prob"
+                    serial_line="00000"
 					
-			else:
-				print "Startup Transmitter ID senden ->" + str(my_TransmitterID)
-				send_TID_wixel(ser,my_TransmitterID)
-				firstrun=False
+            else:
+                print "Startup Transmitter ID senden ->" + str(my_TransmitterID)
+                send_TID_wixel(ser,my_TransmitterID)
+                firstrun=False
 
-			if ((serial_line[1]=="\xf1")):
-				print "Beacon Empfangen!!"
-				send_TID_wixel(ser,my_TransmitterID)
-				# Testdaten
-				#mydata['CaptureDateTime']=str(int(time.time()))+"000"
-				#mydata['RelativeTime']="0"
-				#mydata['RawValue']="155000"
-
-				#mydata['FilteredValue']="155000"
-				#mydata['BatteryLife']="240"
-				#mydata['TransmitterId']="00000"
-				#mydata['ReceivedSignalStrength']=0
-				#mydata['TransmissionId']=0
-				# BGReadings.insertIntoWixeldata(mydata)
-				
-				# print "Time adjusted raw" + str(xdriplib.calculateAgeAdjustedRawValue(5,155000))
-				# 1,080-80,36
-				
-				
-			if (serial_line[1]=="\x00") and (len(serial_line)==18):
-				print "Dexcom Daten empfangen"
-				# simple space delimited data records
-			    # update dictionary - no sanity checking here
-				#  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
-				# 11:00:00:00:00:00:00:00:00:00:bc:00:de:5e:63:00:01:0a
-				# 		 |		  | 		     |  |  |		   | Protokoll Level
-				#        |        |              |  |  |-------------Transmitter ID
-				#        |        |              |  |----------------Bridge Batterie
+            if ((serial_line[1]=="\xf1")):
+                print "Beacon Empfangen!!"
+                send_TID_wixel(ser,my_TransmitterID)
+                # Testdaten
+                #mydata['CaptureDateTime']=str(int(time.time()))+"000"
+                #mydata['RelativeTime']="0"
+                #mydata['RawValue']="155000"
+                
+                #mydata['FilteredValue']="155000"
+                #mydata['BatteryLife']="240"
+                #mydata['TransmitterId']="00000"
+                #mydata['ReceivedSignalStrength']=0
+                #mydata['TransmissionId']=0
+                # BGReadings.insertIntoWixeldata(mydata)
+                
+                # print "Time adjusted raw" + str(xdriplib.calculateAgeAdjustedRawValue(5,155000))
+                # 1,080-80,36
+	
+            if (serial_line[1]=="\x00") and (len(serial_line)==18):
+                print "Dexcom Daten empfangen"
+                # simple space delimited data records
+                # update dictionary - no sanity checking here
+                #  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17
+                # 11:00:00:00:00:00:00:00:00:00:bc:00:de:5e:63:00:01:0a
+                # 		 |		  | 		     |  |  |		   | Protokoll Level
+                #        |        |              |  |  |-------------Transmitter ID
+                #        |        |              |  |----------------Bridge Batterie
                 #        |        |              |-------------------Dexcom batterie
                 #        |        |----------------------------------Filtered Data
-				#		 |-------------------------------------------Raw
-				
+                #		 |-------------------------------------------Raw
+                
                 				
-				mydata['CaptureDateTime']=str(int(time.time()))+"000"
-				mydata['RelativeTime']="0"
-				mydata['RawValue']=str(int(ord(serial_line[2])+(ord(serial_line[3])*256)+(ord(serial_line[4])*65536)+(ord(serial_line[5])*16777216)))
+                mydata['CaptureDateTime']=str(int(time.time()))+"000"
+                mydata['RelativeTime']="0"
+                mydata['RawValue']=str(int(ord(serial_line[2])+(ord(serial_line[3])*256)+(ord(serial_line[4])*65536)+(ord(serial_line[5])*16777216)))
+                
+                mydata['FilteredValue']=str(int(ord(serial_line[6])+(ord(serial_line[7])*256)+(ord(serial_line[8])*65536)+(ord(serial_line[9])*16777216)))
+                mydata['BatteryLife']=str(ord(serial_line[10]))
+                mydata['TransmitterId']=str(int(ord(serial_line[12])+(ord(serial_line[13])*256)+(ord(serial_line[14])*65536)+(ord(serial_line[15])*16777216)))
+                mydata['ReceivedSignalStrength']=0
+                mydata['TransmissionId']=0
+                print "Receive" + json.dumps(mydata)
 
-				mydata['FilteredValue']=str(int(ord(serial_line[6])+(ord(serial_line[7])*256)+(ord(serial_line[8])*65536)+(ord(serial_line[9])*16777216)))
-				mydata['BatteryLife']=str(ord(serial_line[10]))
-				mydata['TransmitterId']=str(int(ord(serial_line[12])+(ord(serial_line[13])*256)+(ord(serial_line[14])*65536)+(ord(serial_line[15])*16777216)))
-				mydata['ReceivedSignalStrength']=0
-				mydata['TransmissionId']=0
-				print "Receive" + json.dumps(mydata)
 
-
-				send_ACK_wixel(ser)
+                send_ACK_wixel(ser)
 				
-				if wixellib.dexcom_src_to_asc(mydata['TransmitterId'])==my_TransmitterID:
-					print "Neue daten Da !!!!!"
-					BGReadings.insertIntoWixeldata(mydata)
+                if wixellib.dexcom_src_to_asc(mydata['TransmitterId'])==my_TransmitterID:
+                    print "Neue daten Da !!!!!"
+                    BGReadings.insertIntoWixeldata(mydata)
+                    
+                    BGData=BGReadings_Data()
+                    CurSensor=sensor.currentSensor()
+                    Calib=calibration_Data()
+                    Calib.getlatest()
+                    
+                    BGData.raw_value=long(ord(serial_line[2])+(ord(serial_line[3])*256)+(ord(serial_line[4])*65536)+(ord(serial_line[5])*16777216))
+                    BGData.filtered_value=int(ord(serial_line[6])+(ord(serial_line[7])*256)+(ord(serial_line[8])*65536)+(ord(serial_line[9])*16777216))
+                    BGData.raw_timestamp=long(str(int(time.time()))+"000")
 					
-					BGData=BGReadings_Data()
-					CurSensor=sensor.currentSensor()
-					Calib=calibration_Data()
-					Calib.getlatest()
+                    
+                    BGData.timestamp = BGData.raw_timestamp
+                    BGData.DateTime = datetime.datetime.fromtimestamp((BGData.timestamp/1000)).strftime('%Y-%m-%d %H:%M:%S')
+                    print "BGData.Datetime -> " + BGData.DateTime 
+                    
+                    BGData.slope = Calib.slope
+                    BGData.intercept = Calib.intercept
+                    BGData.sensor_confidence = Calib.sensor_confidence
+
+                    
+                    BGData.age_adjusted_raw_value= xdriplib.calculateAgeAdjustedRawValue(xdriplib.getTimeDelta(BGData,CurSensor),BGData.raw_value)
+                    BGData.sensor_age_at_time_of_estimation=CurSensor['started_at']
+                    
+                    
+                    BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
+                    print "Calib.slope 					 -> " + str(Calib.slope)
+                    print "Calib.intercept 				 -> " + str(Calib.intercept)
+                    print "BGData.age_adjusted_raw_value -> " + str(BGData.age_adjusted_raw_value)
+                    print "BGData.bg 					 -> " + str(BGData.bg)
+                    
+                    
+                    BGData.write2db()
+                    xdriplib.find_new_curve()
+                    xdriplib.find_new_raw_curve()
+                    print "Neue Daten in die DB eingetragen ->  \n";
+                    sendScreen()
 					
-					BGData.raw_value=long(ord(serial_line[2])+(ord(serial_line[3])*256)+(ord(serial_line[4])*65536)+(ord(serial_line[5])*16777216))
-					BGData.filtered_value=int(ord(serial_line[6])+(ord(serial_line[7])*256)+(ord(serial_line[8])*65536)+(ord(serial_line[9])*16777216))
-					BGData.raw_timestamp=long(str(int(time.time()))+"000")
-					BGData.timestamp=BGData.raw_timestamp
-					
-					BGData.age_adjusted_raw_value= xdriplib.calculateAgeAdjustedRawValue(xdriplib.getTimeDelta(BGData,CurSensor),BGData.raw_value)
-					BGData.sensor_age_at_time_of_estimation=CurSensor['started_at']
-					
-					
-					BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
-					print "Calib.slope 					 -> " + str(Calib.slope)
-					print "Calib.intercept 				 -> " + str(Calib.intercept)
-					print "BGData.age_adjusted_raw_value -> " + str(BGData.age_adjusted_raw_value)
-					print "BGData.bg 					 -> " + str(BGData.bg)
-					
-					
-					BGData.write2db()
-					print "Neue Daten in die DB eingetragen ->  \n";
-					sendScreen()
-					
-				else:
-					print "Error Found Wrong ID->"+wixellib.dexcom_src_to_asc(mydata['TransmitterId'])+" MyID-> "+  my_TransmitterID +"\n";
-					send_TID_wixel(ser,my_TransmitterID)
+                else:
+                    print "Error Found Wrong ID->"+wixellib.dexcom_src_to_asc(mydata['TransmitterId'])+" MyID-> "+  my_TransmitterID +"\n";
+                    send_TID_wixel(ser,my_TransmitterID)
 
 			
-		except serial.serialutil.SerialException,e:
-			print "Serial exception ",e
-			time.sleep(1)
+        except serial.serialutil.SerialException,e:
+            print "Serial exception ",e
+            time.sleep(1)
 			
-		ser.close() 
-		time.sleep(6) 
+        ser.close() 
+        time.sleep(6) 
 
 
 

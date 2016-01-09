@@ -137,15 +137,15 @@ def find_new_curve():
 		print "Not enough data to calculate parabolic rates - assume static data"
 		a = 0;
 		b = 0;
-		c = latest.calculated_value;
+		c = latest.bg;
 
 		print ""+str(a)+"x^2 + "+str(b)+"x + "+str(c)
 
-	print "BG PARABOLIC RATES: "+str(a)+"x^2 + "+str(b)+"x + "+str(c)
+	print "(find_new_curve) BG PARABOLIC RATES: "+str(a)+"x^2 + "+str(b)+"x + "+str(c)
 	latest.a = a
 	latest.b = b
 	latest.c = c
-	latest.write2db
+	latest.write2db()
 
 def estimated_bg(timestamp):
 	timestamp = timestamp + BESTOFFSET;
@@ -447,7 +447,7 @@ def create(bg):
 				print "create(bg)estimated_raw_bg_value ->" + str(estimated_raw_bg_value)
 				calibration.estimate_raw_at_time_of_calibration = estimated_raw_bg_value
 				
-			calibration.distance_from_estimate = abs(calibration.bg - bgReading.calculated_value);
+			calibration.distance_from_estimate = abs(calibration.bg - bgReading.bg);
 			calibration.sensor_confidence = max(((-0.0018 * bg * bg) + (0.6657 * bg) + 36.7505) / 100, 0);
 			calibration.sensor_age_at_time_of_estimation = calibration.timestamp - sens['started_at'];
 			calibration.uuid = "CalUUI"

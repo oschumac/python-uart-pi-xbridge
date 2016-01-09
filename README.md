@@ -8,13 +8,21 @@ Calculate cgm Blood Glucose based of xdrip calc and hardcoded intercept and slop
 
 Todo -> 3 Steps are in my mind
 
-1. Get a functional algorithm to calculate BG based on calibrations out of Mongodb
+1. Get a functional algorithm to calculate BG based on calibrations out of Mongodb -> canceled
 
-2. Start to generate an own calibration algorythm in the pi
-   Would give the advantage for loopers to get BG from Bolus expert inputs out of the pump.
-   Pi could calculate the next calalibration without any other user attention or any other devices
+2. Start to generate an own calibration algorythm in the pi							-> done :-)
+   Would give the advantage for loopers to get BG from Bolus expert inputs out of the pump. -> to be done
+   Pi could calculate the next calalibration without any other user attention or any other devices -> to be done 
 
-3. Send data to mongo (BG,CAL) 
+3. Send data to mongo (BG,CAL)  -> to be done
+
+# Implemented functionality
+
+- calculate calibrations double calibration
+- calculate single calibrations.
+- Start/Stop Sensor
+- All data stored in sqllite db
+- calculate CGM BG based on received raw data and determined calibration
 
 
 # to get Started you will need to:

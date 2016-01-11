@@ -107,13 +107,20 @@ print "thirdlatest BG   ->" + str(Y.bg)
 
 
 print "***********************************************************************************"
+#Y.getlatest()
+#X=calibration_Data()
+#X.getlatest()
 
-#xdriplib.initialCalibration( 106,  107 )
-#xdriplib.find_new_curve();
-#xdriplib.find_new_raw_curve();
-#xdriplib.find_slope()
+#X.estimate_raw_at_time_of_calibration = Y.raw_value;
+#X.save()
 
-#xdriplib.create(82)
+
+#xdriplib.calculate_w_l_s()
+
+
+#xdriplib.initialCalibration( 220,  227 )
+
+#xdriplib.create(245)
 
 
 

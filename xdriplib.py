@@ -186,15 +186,15 @@ def find_new_raw_curve():
 	third_latest.getthirdlatest()
 			
 	if third_latest.raw_value<>0:
-		y3 = calculateAgeAdjustedRawValue(getTimeDelta(first_latest,CurSensor),first_latest.raw_value)
+		y3 = 1.0 * calculateAgeAdjustedRawValue(getTimeDelta(first_latest,CurSensor),first_latest.raw_value)/1000
 		x3 = first_latest.timestamp;
-		y2 = calculateAgeAdjustedRawValue(getTimeDelta(second_latest,CurSensor),second_latest.raw_value);
+		y2 = calculateAgeAdjustedRawValue(getTimeDelta(second_latest,CurSensor),second_latest.raw_value)/1000;
 		x2 = second_latest.timestamp;
-		y1 = calculateAgeAdjustedRawValue(getTimeDelta(third_latest,CurSensor),third_latest.raw_value);
+		y1 = calculateAgeAdjustedRawValue(getTimeDelta(third_latest,CurSensor),third_latest.raw_value)/1000;
 		x1 = third_latest.timestamp;
-		print "x1" + str(x1) + ", y1 " +str(y1) + ", "
-		print "x2" + str(x2) + ", y2 " +str(y2) + ", "
-		print "x3" + str(x3) + ", y3 " +str(y3) + ", "
+		print "x1->" + str(x1) + ", y1->" +str(y1) + ", "
+		print "x2->" + str(x2) + ", y2->" +str(y2) + ", "
+		print "x3->" + str(x3) + ", y3->" +str(y3) + ", "
 		
 		first_latest.ra = y1/((x1-x2)*(x1-x3))+y2/((x2-x1)*(x2-x3))+y3/((x3-x1)*(x3-x2));
 		first_latest.rb = (-y1*(x2+x3)/((x1-x2)*(x1-x3))-y2*(x1+x3)/((x2-x1)*(x2-x3))-y3*(x1+x2)/((x3-x1)*(x3-x2)));
@@ -299,7 +299,6 @@ def calculateWeight(sensor_age_at_time_of_estimation,slope_confidence,sensor_con
 	time_percentage = (time_percentage + .01);
 	print "(calculateWeight) CALIBRATIONS TIME PERCENTAGE WEIGHT: " + str(time_percentage)
 	return max((((((slope_confidence + sensor_confidence) * (time_percentage))) / 2) * 100), 1);
-
 	
 	
 def calculate_w_l_s():
@@ -308,12 +307,12 @@ def calculate_w_l_s():
 	calibration.getlatest()
 	
 	if calibration.sensorid<>0:
-		l = 0;
-		m = 0;
-		n = 0;
-		p = 0;
-		q = 0;
-		
+		l = 0.0;
+		m = 0.0;
+		n = 0.0;
+		p = 0.0;
+		q = 0.0;
+		w = 0.0
 		
 		calibrations = calibration.allForSensorInLastFourDays() # 5 days was a bit much, dropped this to 4
 		
@@ -327,13 +326,14 @@ def calculate_w_l_s():
 				bg=c[4]
 				sensor_confidence=c[8]
 				slope_confidence=c[9]
-				estimate_raw_at_time_of_calibration=c[14]
+				estimate_raw_at_time_of_calibration=c[14]/1000
 				
-				print "sensor_age_at_time_of_estimation " + str(sensor_age_at_time_of_estimation)
-				print "bg " + str(bg)
-				print "sensor_confidence " + str(sensor_confidence)
-				print "slope_confidence  " + str(slope_confidence)
-				print "estimate_raw_at_time_of_calibration " + str(estimate_raw_at_time_of_calibration)
+				print "(calculate_w_l_s)(loop) sensor_age_at_time_of_estimation " + str(sensor_age_at_time_of_estimation)
+				print "(calculate_w_l_s)(loop) sensor_confidence " + str(sensor_confidence)
+				print "(calculate_w_l_s)(loop) slope_confidence  " + str(slope_confidence)
+				
+				print "(calculate_w_l_s)(loop) bg " + str(bg)
+				print "(calculate_w_l_s)(loop) estimate_raw_at_time_of_calibration " + str(estimate_raw_at_time_of_calibration)
 				
 				
 				w = calculateWeight(sensor_age_at_time_of_estimation,slope_confidence,sensor_confidence);
@@ -350,12 +350,14 @@ def calculate_w_l_s():
 			
 			w = ( calculateWeight(last_calibration.sensor_age_at_time_of_estimation,last_calibration.slope_confidence,last_calibration.sensor_confidence) * (len(c) * 0.14));
 			l += (w);
-			m += (w * last_calibration.estimate_raw_at_time_of_calibration);
-			n += (w * last_calibration.estimate_raw_at_time_of_calibration * last_calibration.estimate_raw_at_time_of_calibration);
+			m += (w * last_calibration.estimate_raw_at_time_of_calibration/1000);
+			n += (w * (last_calibration.estimate_raw_at_time_of_calibration/1000) * (last_calibration.estimate_raw_at_time_of_calibration/1000));
 			p += (w * last_calibration.bg);
-			q += (w * last_calibration.estimate_raw_at_time_of_calibration * last_calibration.bg);
-			
-			d = (l * n) - (m * m);
+			q += (w * (last_calibration.estimate_raw_at_time_of_calibration/1000) * last_calibration.bg);
+			print "(calculate_w_l_s)(loop) last_calibration.bg " + str(last_calibration.bg)
+			print "(calculate_w_l_s)(loop) .last_calibrationestimate_raw_at_time_of_calibration " + str(last_calibration.estimate_raw_at_time_of_calibration/1000)
+				
+			d = ((l * n) - (m * m));
 			
 			
 			print "w ->" + str(w)
@@ -371,7 +373,7 @@ def calculate_w_l_s():
 			print "n*p" + str(n*p)
 			print "m*q" + str(m*q)
 			
-			calibration.intercept = ((n * p) - (m * q)) / d;
+			calibration.intercept = ((n * p) - (m * q)) / d * 2;
 			calibration.slope = ((l * q) - (m * p)) / d;
 			print "(1) Calculated Calibration Slope: " + str(calibration.slope)
 			print "(1) Calculated Calibration intercept: " + str(calibration.intercept)
@@ -393,7 +395,7 @@ def calculate_w_l_s():
 				
 			if ((len(calibrations) == 2 and calibration.slope > 1.3) or (calibration.slope > 1.4)):
 				calibration.slope = slopeOOBHandler(1);
-				if(calibrations.size() > 2):
+				if(len(calibrations) > 2):
 					calibration.possible_bad = True
 
 				print "(calibration.bg) ->" + str(calibration.bg)
@@ -419,10 +421,12 @@ def create(bg):
 	calibration = calibration_Data();
 	#sens = sensor();
 	bgReading=BGReadings_Data()
+	bgReadingsec=BGReadings_Data()
 	
 	if (sensor.SensorisActive()):
 		sens = sensor.currentSensor()
 		bgReading.getlatest()
+		bgReadingsec.getsecondlatest()
 		if (bgReading._id <> 0):
 			calibration.sensor = sensor;
 			calibration.bg = bg;
@@ -431,8 +435,19 @@ def create(bg):
 			calibration.raw_value = bgReading.raw_value;
 			calibration.age_adjusted_raw_value = bgReading.age_adjusted_raw_value;
 			calibration.sensor_uuid = "Sensor_uuid";
-			calibration.slope_confidence = min(max(((4 - abs((bgReading.slope) * 60000))/4), 0), 1);
+			
+			print "(create) bgReading.bg    -> " + str(bgReading.bg)
+			print "(create) bgReadingsec.bg -> " + str(bgReadingsec.bg)
+			print "(create) abs(bgReading.bg - bgReadingsec.bg) -> " + str(abs(bgReading.bg - bgReadingsec.bg))
 
+			calibration.slope_confidence = min(max(((   4 - (abs(bgReading.bg - bgReadingsec.bg) * 60000))/4), 0), 1);
+
+
+
+			print "(create) calibration.slope_confidence  -> " + str(calibration.slope_confidence )
+			calibration.slope_confidence = (100-abs(bgReading.bg - bgReadingsec.bg))/100
+			print "(create) calibration.slope_confidence  -> " + str(calibration.slope_confidence )
+			
 			estimated_raw_bg_value = estimated_raw_bg(long(str(int(time.time()))+"000"));
 
 			calibration.raw_timestamp = bgReading.timestamp;
@@ -494,28 +509,44 @@ def initialCalibration( bg1,  bg2 ):
 	higher_bg = max(bg1, bg2);
 	lower_bg = min(bg1, bg2);
 
-	highBgReading=BGReadings_Data()
-	lowBgReading=BGReadings_Data()
+	BgReading1=BGReadings_Data()
+	BgReading1.getlatest()
+	BgReading2=BGReadings_Data()
+	BgReading2.getsecondlatest()
 	
-	
-	if (bgReading1[0] > bgReading2[0]) :
-		highBgReading.raw_value = bgReading1[0]
-		highBgReading.raw_timestamp = bgReading1[1]
-		highBgReading.age_adjusted_raw_value = bgReading1[2]
-
-		lowBgReading.raw_value = bgReading2[0]
-		lowBgReading.raw_timestamp = bgReading2[1]
-		lowBgReading.age_adjusted_raw_value = bgReading2[2]
+	if BgReading1.raw_value > BgReading2.raw_value:
+		highBgReading=BGReadings_Data()
+		highBgReading.getlatest()
+		
+		lowBgReading=BGReadings_Data()
+		lowBgReading.getsecondlatest()
 	else:
-		highBgReading.raw_value = bgReading2[0]
-		highBgReading.raw_timestamp = bgReading2[1]
-		highBgReading.age_adjusted_raw_value = bgReading2[2]
-
-		lowBgReading.raw_value = bgReading1[0]
-		lowBgReading.raw_timestamp = bgReading1[1]
-		lowBgReading.age_adjusted_raw_value = bgReading1[2]
+		highBgReading=BGReadings_Data()
+		highBgReading.getsecondlatest()
+		
+		lowBgReading=BGReadings_Data()
+		lowBgReading.getlatest()
+		
 	
 	
+#	if (bgReading1[0] > bgReading2[0]) :
+#		highBgReading.raw_value = bgReading1[0]
+#		highBgReading.raw_timestamp = bgReading1[1]#
+#		highBgReading.age_adjusted_raw_value = bgReading1[2]
+#
+#		lowBgReading.raw_value = bgReading2[0]
+#		lowBgReading.raw_timestamp = bgReading2[1]
+#		lowBgReading.age_adjusted_raw_value = bgReading2[2]
+#	else:
+#		highBgReading.raw_value = bgReading2[0]
+#		highBgReading.raw_timestamp = bgReading2[1]
+#		highBgReading.age_adjusted_raw_value = bgReading2[2]
+#
+#		lowBgReading.raw_value = bgReading1[0]
+#		lowBgReading.raw_timestamp = bgReading1[1]
+#		lowBgReading.age_adjusted_raw_value = bgReading1[2]
+#	
+#	
 	
 	print "highBgReading.raw_value -> " + str(highBgReading.raw_value)
 	print "lowBgReading.raw_value -> " + str(lowBgReading.raw_value)
@@ -560,7 +591,7 @@ def initialCalibration( bg1,  bg2 ):
 	lowerCalibration.save()
 
 	
-	lowBgReading.timestamp=long(str(int(time.time()))+"000")
+	# lowBgReading.timestamp=long(str(int(time.time()))+"000")
 	lowBgReading.sensor_uuid='Sensor_uuid'
 	lowBgReading.slope_confidence = 0.5
 	lowBgReading.distance_from_estimate = 0
@@ -570,7 +601,7 @@ def initialCalibration( bg1,  bg2 ):
 	lowBgReading.uuid = 'randomUUID'
 	lowBgReading.write2db()
 	
-	highBgReading.timestamp=long(str(int(time.time()))+"000")	
+	# highBgReading.timestamp=long(str(int(time.time()))+"000")	
 	highBgReading.sensor_uuid='Sensor_uuid'
 	highBgReading.slope_confidence = 0.5
 	highBgReading.distance_from_estimate = 0

@@ -491,8 +491,8 @@ class BGReadings_Data:
 		conn = sqlite3.connect(db.openapsDBName)		
 		cur = conn.cursor()
 		cur.execute(sql)
-		data1 = cur.fetchone()		
-		data = cur.fetchone()
+		data = cur.fetchone()		
+		data1 = cur.fetchone()
 		conn.close()
 		if data<>None and data1<>None:
 			if len(data)==20:
@@ -524,9 +524,9 @@ class BGReadings_Data:
 		conn = sqlite3.connect(db.openapsDBName)		
 		cur = conn.cursor()
 		cur.execute(sql)
-		data1 = cur.fetchone()		
+		data = cur.fetchone()		
+		data1 = cur.fetchone()
 		data2 = cur.fetchone()
-		data = cur.fetchone()
 		conn.close()
 		if data<>None and data1<>None and data2<>None:
 			if len(data)==20:

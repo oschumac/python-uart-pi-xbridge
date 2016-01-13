@@ -18,7 +18,7 @@ import ImageFont
 import ImageDraw
 import wixellib
 import xdriplib
-import BGReadings
+#import BGReadings
 import db
 import sensor
 
@@ -32,6 +32,8 @@ def main():
     cal= calibration_Data()
     
     data =  cal.allForSensorInLastFourDays()
+    
+    print "_id, time, senor_age_at_estimate, sensorid, bg, raw, filtered, age_adjusted_raw, sensor_convidence, slop_conv, raw_time, slope, intercept, distance_from_estimate, estimate_raw, estimate_bg" 
     for row in data:
         print row
     

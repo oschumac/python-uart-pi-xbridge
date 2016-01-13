@@ -319,7 +319,10 @@ class calibration_Data:
 			
 			
 			
-class BGReadings_Data: 
+class BGReadings_Data:
+	
+	WixelData = {"_id":0,"TransmitterId":"00000","CaptureDateTime":0,"RelativeTime":0,"ReceivedSignalStrength":0,"RawValue":0,"TransmissionId":0,"BatteryLife":0,"UploadAttempts":0,"Uploaded":0,"UploaderBatteryLife":0,"FilteredValue":0 }
+
 	def __init__(self):
 		#print "BGReadings_Data initialisiert"
 		self._id=0
@@ -417,7 +420,40 @@ class BGReadings_Data:
 			conn.execute(sql)
 			conn.commit()
 			print "Records update successfully";
-			
+
+
+	def getrawData(self):
+		wdata=self.WixelData
+		#sql = 'select _id, TransmitterId, CaptureDateTime, RelativeTime, ReceivedSignalStrength, RawValue, TransmissionId, BatteryLife, UploadAttempts, Uploaded, UploaderBatteryLife, FilteredValue '   
+		#sql+= 'from ' + db.tableNameWixeldata + ' order by CaptureDateTime desc limit 1'
+
+		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
+		sql+="possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc  from " + db.tableNameBGReadingsdata + " ORDER BY _id desc LIMIT 1"
+
+		#print "(BGReadings)(getrawData)  SQL->" + sql
+		conn = sqlite3.connect(db.openapsDBName)		
+		cur = conn.cursor()
+		cur.execute(sql)
+		data = cur.fetchone()
+		conn.close()
+		if data!=None:
+			wdata['_id']=data[0]
+			wdata['TransmitterId']='0'
+			wdata['CaptureDateTime']=data[1]
+			wdata['RelativeTime']='0'
+			wdata['ReceivedSignalStrength']='0'
+			wdata['RawValue']=data[4]
+			wdata['TransmissionId']='0'
+			wdata['BatteryLife']=240
+			wdata['UploadAttempts']='0'
+			wdata['Uploaded']='0'
+			wdata['UploaderBatteryLife']='0'
+			wdata['FilteredValue']=data[7]
+		else:
+			print "(BGReadings)(getrawData)  No data available"
+		return wdata;
+
+
 	def getfirst(self):
 		#print "getlatest"
 		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
@@ -491,10 +527,10 @@ class BGReadings_Data:
 		conn = sqlite3.connect(db.openapsDBName)		
 		cur = conn.cursor()
 		cur.execute(sql)
-		data = cur.fetchone()		
-		data1 = cur.fetchone()
+		data1 = cur.fetchone()		
+		data = cur.fetchone()
 		conn.close()
-		if data<>None and data1<>None:
+		if data<>None:
 			if len(data)==20:
 				self._id=data[0]
 				self.timestamp=data[1]
@@ -524,11 +560,11 @@ class BGReadings_Data:
 		conn = sqlite3.connect(db.openapsDBName)		
 		cur = conn.cursor()
 		cur.execute(sql)
-		data = cur.fetchone()		
-		data1 = cur.fetchone()
+		data1 = cur.fetchone()		
 		data2 = cur.fetchone()
+		data = cur.fetchone()
 		conn.close()
-		if data<>None and data1<>None and data2<>None:
+		if data<>None:
 			if len(data)==20:
 				self._id=data[0]
 				self.timestamp=data[1]

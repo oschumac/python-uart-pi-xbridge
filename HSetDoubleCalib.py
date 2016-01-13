@@ -18,7 +18,7 @@ import ImageFont
 import ImageDraw
 import wixellib
 import xdriplib
-import BGReadings
+#import BGReadings
 import db
 import sensor
 

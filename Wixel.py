@@ -49,7 +49,6 @@ import serial
 # Project imports
 import wixellib
 import xdriplib
-import BGReadings
 from calibration import *
 import db
 
@@ -126,7 +125,8 @@ def sendScreen():
 	draw.text((x, top),    '* TEST *',  font=font, fill=255)
 	#draw.text((x, top+12), 'Raw: '+ str(mydata['RawValue']), font=font, fill=255)
 	draw.text((x, top+12), 'CGM   : ' + str(math.ceil(BGlatest.bg)) + '(' + str(BGlatest.bg-BGsecondlatest.bg) + ')' , font=font, fill=255)
-	draw.text((x, top+24), 'Zeit: ' + str(BGlatest.DateTime), font=font, fill=255)
+	draw.text((x, top+24), 'Zeit: ' + datetime.datetime.fromtimestamp((BGlatest.timestamp/1000)).strftime('%H:%M:%S'), font=font, fill=255)
+
 	draw.text((x, top+36), 'Signal: ' + str(mydata['ReceivedSignalStrength']), font=font, fill=255)
 	draw.text((x, top+48), 'Dex ID: ' + wixellib.dexcom_src_to_asc(mydata['TransmitterId']) , font=font, fill=255)
 
@@ -219,7 +219,6 @@ def serialthread(dummy):
                 #mydata['TransmitterId']="00000"
                 #mydata['ReceivedSignalStrength']=0
                 #mydata['TransmissionId']=0
-                # BGReadings.insertIntoWixeldata(mydata)
                 
                 # print "Time adjusted raw" + str(xdriplib.calculateAgeAdjustedRawValue(5,155000))
                 # 1,080-80,36
@@ -254,7 +253,6 @@ def serialthread(dummy):
 				
                 if wixellib.dexcom_src_to_asc(mydata['TransmitterId'])==my_TransmitterID:
                     print "Neue daten Da !!!!!"
-                    BGReadings.insertIntoWixeldata(mydata)
                     
                     BGData=BGReadings_Data()
                     CurSensor=sensor.currentSensor()
@@ -337,8 +335,9 @@ def clientthread(conn):
 		if not data: 
 			break
 		decoded = json.loads(data)     
-		# print json.dumps(decoded,sort_keys=True,indent=4)
-		
+		print json.dumps(decoded,sort_keys=True,indent=4)
+		BGReadings=BGReadings_Data()
+        
 		DBData=BGReadings.getrawData()
 		DBData['RelativeTime']=str((int(time.time())*1000)-int(DBData['CaptureDateTime']))
 
@@ -350,6 +349,7 @@ def clientthread(conn):
 		print reply
 
 		conn.sendall(reply)
+        
     conn.close()
 
 # thread end

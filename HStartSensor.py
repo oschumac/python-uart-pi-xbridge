@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import json
 import socket
 import sys
@@ -32,6 +34,3 @@ ID=sensor.StartSensor()
 
 if sensor.SensorisActive():
 	CurSensor=sensor.currentSensor()
-	data=BGReadings.getrawData()
-	TimeDelta=((data['CaptureDateTime']-CurSensor['started_at'])*1.0)/1000/60/60
-	Adjusted_raw=xdriplib.calculateAgeAdjustedRawValue(TimeDelta,int(data['RawValue']))

@@ -495,8 +495,7 @@ class BGReadings_Data:
 		cur.execute(sql)
 		data = cur.fetchone()
 		conn.close()
-		# print "(getlatest)"
-		# print data
+
 		if data<>None:
 			if len(data)==20:
 				self._id=data[0]
@@ -521,7 +520,6 @@ class BGReadings_Data:
 				self.rc=data[19]
 
 	def getsecondlatest(self):
-		#print "getsecondlatest"
 		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
 		sql+="possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc from " + db.tableNameBGReadingsdata + " ORDER BY _id desc LIMIT 2"
 		conn = sqlite3.connect(db.openapsDBName)		
@@ -554,7 +552,6 @@ class BGReadings_Data:
 				self.rc=data[19]
 
 	def getthirdlatest(self):
-		#print "getsecondlatest"
 		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
 		sql+="possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc from " + db.tableNameBGReadingsdata + " ORDER BY _id desc LIMIT 3"
 		conn = sqlite3.connect(db.openapsDBName)		
@@ -587,7 +584,29 @@ class BGReadings_Data:
 				self.rb=data[18]
 				self.rc=data[19]
 
-			
+	def getallnotuploaded(self):
+		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
+		sql+="possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc from " + db.tableNameBGReadingsdata + " where uploaded = 0 ORDER BY _id desc LIMIT 500"
+		print "SQL->" + sql
+		conn = sqlite3.connect(db.openapsDBName)		
+		cur = conn.cursor()
+		cur.execute(sql)
+		data = cur.fetchall()
+		conn.close()
+		if data<>None:
+			return data
+
+	def setuploaded(self,_id,value):
+		sql="update " + db.tableNameBGReadingsdata + " SET "
+		sql+="uploaded="+str(value)+" "
+		sql+=" where _id="+str(_id)
+		conn = sqlite3.connect(db.openapsDBName)
+		print "SQL -> " + sql;
+		conn.execute(sql)
+		conn.commit()
+		print "Records update successfully";
+
+		
 
 if __name__ == "__main__":
 	x = calibration_Data()

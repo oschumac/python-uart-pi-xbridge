@@ -51,6 +51,8 @@ import wixellib
 import xdriplib
 from calibration import *
 import db
+from mongo import *
+
 
 # Display imports
 import Adafruit_GPIO.SPI as SPI
@@ -283,8 +285,10 @@ def serialthread(dummy):
                     print "BGData.age_adjusted_raw_value -> " + str(BGData.age_adjusted_raw_value)
                     print "BGData.bg 					 -> " + str(BGData.bg)
                     
-                    
                     BGData.write2db()
+                    
+                    getBGReadings()
+                    
                     xdriplib.find_new_curve()
                     xdriplib.find_new_raw_curve()
                     print "Neue Daten in die DB eingetragen ->  \n";
@@ -335,7 +339,7 @@ def clientthread(conn):
 		if not data: 
 			break
 		decoded = json.loads(data)     
-		print json.dumps(decoded,sort_keys=True,indent=4)
+		# print json.dumps(decoded,sort_keys=True,indent=4)
 		BGReadings=BGReadings_Data()
         
 		DBData=BGReadings.getrawData()
@@ -349,7 +353,6 @@ def clientthread(conn):
 		print reply
 
 		conn.sendall(reply)
-        
     conn.close()
 
 # thread end

@@ -45,6 +45,7 @@ class calibration_Data:
 		self.first_scale=0
 		self.second_scale=0
 		self.check_in=False
+		self.uploaded=0
 
 
 		#print "Klasse " + " wurde erzeugt"
@@ -63,7 +64,7 @@ class calibration_Data:
 		sql+="bg, raw_value, filtered_value, age_adjusted_raw_value, sensor_confidence, slope_confidence, raw_timestamp, "
 		sql+="slope, intercept, distance_from_estimate, estimate_raw_at_time_of_calibration, estimate_bg_at_time_of_calibration, "
 		sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
-		sql+="first_intercept, second_intercept, first_scale, second_scale ) values ( "
+		sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded ) values ( "
 		sql+=str(self.timestamp)+ ", "
 		sql+=str(self.sensor_age_at_time_of_estimation)+ ", "
 		sql+=str(self.sensorid)+ ", "
@@ -90,7 +91,8 @@ class calibration_Data:
 		sql+=str(self.first_intercept)+ ", "
 		sql+=str(self.second_intercept)+ ", "
 		sql+=str(self.first_scale)+ ", "
-		sql+=str(self.second_scale)+ ") "
+		sql+=str(self.second_scale)+ ", "
+		sql+=str(self.uploaded)+ ") "
 		
 		#print "createnew SQL->" + sql
 		conn = sqlite3.connect(db.openapsDBName)
@@ -134,7 +136,8 @@ class calibration_Data:
 		sql+="first_intercept="+str(self.first_intercept)+ ", "
 		sql+="second_intercept="+str(self.second_intercept)+ ", "
 		sql+="first_scale="+str(self.first_scale)+ ", "
-		sql+="second_scale="+str(self.second_scale)
+		sql+="second_scale="+str(self.second_scale)+ ", "
+		sql+="uploaded="+str(self.uploaded)
 		sql+=" where _id="+str(self._id)
 		#print "updatesensor SQL->" + sql
 		conn = sqlite3.connect(db.openapsDBName)
@@ -154,7 +157,7 @@ class calibration_Data:
 		sql+="bg, raw_value, filtered_value, age_adjusted_raw_value, sensor_confidence, slope_confidence, raw_timestamp, "
 		sql+="slope, intercept, distance_from_estimate, estimate_raw_at_time_of_calibration, estimate_bg_at_time_of_calibration, "
 		sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
-		sql+="first_intercept, second_intercept, first_scale, second_scale from " + db.tableNameCalibrationdata + " where sensorid=" + str(self.sensorid) + " "
+		sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded from " + db.tableNameCalibrationdata + " where sensorid=" + str(self.sensorid) + " "
 		sql+="ORDER BY _id asc LIMIT 1"
 		#print "Select SQL->" + sql
 		conn = sqlite3.connect(db.openapsDBName)		
@@ -193,13 +196,14 @@ class calibration_Data:
 				self.second_intercept=data[25]
 				self.first_scale=data[26]
 				self.second_scale=data[27]
+				self.uploaded=data[28]
 
 	def getlatest(self):
 		sql="Select _id, timestamp, sensor_age_at_time_of_estimation, sensorid, "
 		sql+="bg, raw_value, filtered_value, age_adjusted_raw_value, sensor_confidence, slope_confidence, raw_timestamp, "
 		sql+="slope, intercept, distance_from_estimate, estimate_raw_at_time_of_calibration, estimate_bg_at_time_of_calibration, "
 		sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
-		sql+="first_intercept, second_intercept, first_scale, second_scale from " + db.tableNameCalibrationdata + " where sensorid=" + str(self.sensorid) + " "
+		sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded from " + db.tableNameCalibrationdata + " where sensorid=" + str(self.sensorid) + " "
 		sql+="ORDER BY _id desc LIMIT 1"
 		#print "Select SQL->" + sql
 		conn = sqlite3.connect(db.openapsDBName)		
@@ -238,6 +242,7 @@ class calibration_Data:
 				self.second_intercept=data[25]
 				self.first_scale=data[26]
 				self.second_scale=data[27]
+				self.uploaded=data[28]
 
 	def first_sensor_age_at_time_of_estimation(self):
 		sql="Select sensor_age_at_time_of_estimation, sensorid "
@@ -299,7 +304,7 @@ class calibration_Data:
 			sql+="bg, raw_value, filtered_value, age_adjusted_raw_value, sensor_confidence, slope_confidence, raw_timestamp, "
 			sql+="slope, intercept, distance_from_estimate, estimate_raw_at_time_of_calibration, estimate_bg_at_time_of_calibration, "
 			sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
-			sql+="first_intercept, second_intercept, first_scale, second_scale from " + db.tableNameCalibrationdata 
+			sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded from " + db.tableNameCalibrationdata 
 			sql+= " where sensorid=" + str(self.sensorid) + " "
 			sql+= " and slope_confidence!=0 "
 			sql+= " and sensor_confidence!=0 "
@@ -316,6 +321,21 @@ class calibration_Data:
 		else:
 			print "Kein Sensor aktiv"	
 
+	def getallnotuploaded(self):
+		sql="Select _id, timestamp, sensor_age_at_time_of_estimation, sensorid, "
+		sql+="bg, raw_value, filtered_value, age_adjusted_raw_value, sensor_confidence, slope_confidence, raw_timestamp, "
+		sql+="slope, intercept, distance_from_estimate, estimate_raw_at_time_of_calibration, estimate_bg_at_time_of_calibration, "
+		sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
+		sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded from " + db.tableNameCalibrationdata 
+		sql+= " where uploaded = 0 ORDER BY _id desc LIMIT 500"
+		print "SQL->" + sql
+		conn = sqlite3.connect(db.openapsDBName)		
+		cur = conn.cursor()
+		cur.execute(sql)
+		data = cur.fetchall()
+		conn.close()
+		if data<>None:
+			return data
 			
 			
 			

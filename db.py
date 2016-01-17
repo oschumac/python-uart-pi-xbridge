@@ -91,7 +91,7 @@ def initDB():
 		conn.execute(sql)
 		
 		sql = 'drop table if exists ' + tableNameSensordata 
-		conn.execute(sql)
+		#conn.execute(sql)
 		sql = 'create table if not exists ' + tableNameSensordata
 		sql +='(_id INTEGER PRIMARY KEY AUTOINCREMENT, '
 		sql +='started_at Long , '
@@ -135,14 +135,15 @@ def initDB():
 		sql +='first_intercept Long, ' 
 		sql +='second_intercept Long, ' 
 		sql +='first_scale Long,' 
-		sql +='second_scale Long) '
+		sql +='second_scale Long, '
+		sql +='uploaded Long ) '
 		print "(BGReadings)(initDB)  SQL->" + sql
 		conn.execute(sql)
 		sql = "CREATE INDEX IF NOT EXISTS " +tableNameCalibrationdata+ "_idx ON " +tableNameCalibrationdata+ "( timestamp,raw_timestamp )"
 		conn.execute(sql)
 
 		sql = 'drop table if exists ' + tableNameBGReadingsdata
-		conn.execute(sql)
+		#conn.execute(sql)
 		sql = 'create table if not exists ' + tableNameBGReadingsdata
 		sql +='(_id INTEGER PRIMARY KEY AUTOINCREMENT, '
 		sql +='timestamp Long, '

@@ -293,10 +293,10 @@ def calculateWeight(sensor_age_at_time_of_estimation,slope_confidence,sensor_con
 	print "(calculateWeight) sensor_age_at_time_of_estimation " + str(sensor_age_at_time_of_estimation)
 	
 	# HMM irgendwie gibt es da verschiedene Versionen
-	if (sensor_age_at_time_of_estimation<>firstTimeStarted):
+	if (sensor_age_at_time_of_estimation<>firstTimeStarted  and (lastTimeStarted - firstTimeStarted) > 0):
 		time_percentage = min(((sensor_age_at_time_of_estimation - firstTimeStarted) / (lastTimeStarted - firstTimeStarted)) / (.85), 1);
 	else:
-		time_percentage=0
+		time_percentage=1
 		
 	time_percentage = (time_percentage + .01);
 	
@@ -458,8 +458,8 @@ def create(bg):
 
 def initialCalibration( bg1,  bg2 ):
 
-	calib = calibration_Data()
-	calib.clear_all_existing_calibrations()
+	#calib = calibration_Data()
+	#calib.clear_all_existing_calibrations()
 
 	
 	higherCalibration =  calibration_Data();

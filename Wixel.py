@@ -287,7 +287,8 @@ def serialthread(dummy):
                     
                     BGData.write2db()
                     
-                    getBGReadings()
+                    mongo_getBGReadings()
+                    mongo_findTreatCall_Calib()
                     
                     xdriplib.find_new_curve()
                     xdriplib.find_new_raw_curve()

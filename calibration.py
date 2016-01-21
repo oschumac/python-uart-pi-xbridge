@@ -166,7 +166,7 @@ class calibration_Data:
 		data = cur.fetchone()
 		conn.close()
 		if data<>None:
-			if len(data)==28:
+			if len(data)==29:
 				#print data
 				self._id=data[0]
 				self.timestamp=data[1]
@@ -205,15 +205,15 @@ class calibration_Data:
 		sql+="uuid, sensor_uuid, possible_bad, check_in, first_decay, second_decay, first_slope, second_slope, "
 		sql+="first_intercept, second_intercept, first_scale, second_scale, uploaded from " + db.tableNameCalibrationdata + " where sensorid=" + str(self.sensorid) + " "
 		sql+="ORDER BY _id desc LIMIT 1"
-		#print "Select SQL->" + sql
+		print "Select SQL->" + sql
 		conn = sqlite3.connect(db.openapsDBName)		
 		cur = conn.cursor()
 		cur.execute(sql)
 		data = cur.fetchone()
 		conn.close()
 		if data<>None:
-			if len(data)==28:
-				#print data
+			if len(data)==29:
+				print data
 				self._id=data[0]
 				self.timestamp=data[1]
 				self.sensor_age_at_time_of_estimation=data[2]

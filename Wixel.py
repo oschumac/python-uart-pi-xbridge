@@ -279,10 +279,14 @@ def serialthread(dummy):
                     BGData.sensor_age_at_time_of_estimation=CurSensor['started_at']
                     
                     
-                    BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
+                    
+                    #BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
+                    BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.filtered_value)
                     print "Calib.slope 					 -> " + str(Calib.slope)
                     print "Calib.intercept 				 -> " + str(Calib.intercept)
                     print "BGData.age_adjusted_raw_value -> " + str(BGData.age_adjusted_raw_value)
+                    print "BGData.filtered_value         -> " + str(BGData.filtered_value)
+                    
                     print "BGData.bg 					 -> " + str(BGData.bg)
                     
                     BGData.write2db()

@@ -18,15 +18,15 @@ Calculate cgm Blood Glucose based of xdrip calc and hardcoded intercept and slop
 
 
 # If using rpi to get Started you will need to:
-1a. deactivate ttyAMA0 on Kernel via raspconfig
+1. deactivate ttyAMA0 on Kernel via raspconfig
    Otherwise the one and only UART is used for Kernel messages and login
 
 # If using Intel Edison you can use /dev/ttyMFD1
-1b. you have to change ser = serial.Serial('/dev/ttyMFD2', 9600) to ser = serial.Serial('/dev/ttyMFD1', 9600)
+1. you have to change ser = serial.Serial('/dev/ttyMFD2', 9600) to ser = serial.Serial('/dev/ttyMFD1', 9600)
    and change os.system('systemctl stop serial-getty@ttyMFD2.service') to #os.system('systemctl stop serial-getty@ttyMFD2.service')
    
-# If using Intel Edison you can use /dev/ttyMFD1
-1c. Script will deaktivate Kernel Konsole on ttyMFD2 on startup.
+# If using Intel Edison you can use /dev/ttyMFD2
+1. Script will deaktivate Kernel Konsole on ttyMFD2 on startup.
 
 
 2. You can use xBridge2 excample or xBridgeOaps excample.

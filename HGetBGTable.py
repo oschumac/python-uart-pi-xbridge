@@ -24,18 +24,14 @@ import sys
 
 def main():
     print "***********************************"
-    cal= calibration_Data()
+    BGR = BGReadings_Data()
     
-    data =  cal.allForSensorInLastFourDays()
+    data =  BGR.getlastBG(20)
     
-    print "_id, time, senor_age_at_estimate, sensorid, bg, raw, filtered, age_adjusted_raw, sensor_convidence, slop_conv, raw_time, slope, intercept, distance_from_estimate, estimate_raw, estimate_bg" 
+    print "_id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc "
     for row in data:
         print row
     
-    cal.getlatest()
-    print "" 
-    print "Slope     -> " + str(cal.slope) 
-    print "intercept -> " + str(cal.intercept) 
 
     
 if __name__ == "__main__":

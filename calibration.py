@@ -105,6 +105,7 @@ class calibration_Data:
 		cur.execute(sql)
 		data = cur.fetchone()
 		self._id=data[0]
+		conn.commit()
 		conn.close()
 		
 
@@ -309,7 +310,7 @@ class calibration_Data:
 			sql+= " and slope_confidence!=0 "
 			sql+= " and sensor_confidence!=0 "
 			sql+= " and timestamp > " + str(long (time.time()*100) - (60000 * 60 * 24 * 4) ) + " "
-			sql+= "ORDER BY timestamp desc"
+			sql+= "ORDER BY _id desc"
 			#print "SQL->" + sql
 			conn = sqlite3.connect(db.openapsDBName)		
 			cur = conn.cursor()
@@ -412,6 +413,7 @@ class BGReadings_Data:
 			cur.execute(sql)
 			data = cur.fetchone()
 			self._id=data[0]
+			conn.commit()
 			conn.close()
 		else:
 			sql="update " + db.tableNameBGReadingsdata + " SET "
@@ -615,6 +617,20 @@ class BGReadings_Data:
 		conn.close()
 		if data<>None:
 			return data
+
+	def getlastBG(self,num):
+		sql="Select _id, timestamp, DateTime, bg, raw_value, raw_timestamp, age_adjusted_raw_value, filtered_value, sensor_age_at_time_of_estimation, "
+		sql+="possible_bad, slope, intercept, sensor_confidence, uploaded, a, b, c, ra, rb, rc from " + db.tableNameBGReadingsdata + " ORDER BY _id desc LIMIT " + str(num)
+		#print "SQL->" + sql
+		conn = sqlite3.connect(db.openapsDBName)		
+		cur = conn.cursor()
+		cur.execute(sql)
+		data = cur.fetchall()
+		conn.close()
+		if data<>None:
+			return data
+
+
 
 	def setuploaded(self,_id,value):
 		sql="update " + db.tableNameBGReadingsdata + " SET "

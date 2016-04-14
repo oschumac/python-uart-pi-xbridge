@@ -12,7 +12,9 @@ from calibration import *
 import dateutil.parser
 from dateutil import tz
 
-MONGODB_URI_LOCAL = 'mongodb://openapstest:openapstest@cgmcloud.de:21060/openapstest' 
+MONGODB_URI_LOCAL = 'mongodb://user:passw@mongolab:123456/collectionname' 
+MONGODB_COLLECTION = 'collectionname'
+
 
 def gettreatments():
     try:
@@ -22,7 +24,7 @@ def gettreatments():
 		print('Error: Unable to Connect')
 		connection = None
     
-    db = client['openapstest']
+    db = client[MONGODB_COLLECTION]
     #cursor = db.entries.find({'type':'cal'}).sort('date', -1).limit(3)
     #cursor = db.entries.find({'type':'sgv'}).sort('date', -1).limit(3)
     cursor = db.treatments.find({'glucose':{"$exists": 'false'}}).sort('_id',-1).limit(1)
@@ -50,7 +52,7 @@ def gettreatments():
 def sendentries(BG,DATETIME,FILTERED,UNFILTERED):
     try:
         client = pymongo.MongoClient(MONGODB_URI_LOCAL)
-        db = client['openapstest']
+        db = client[MONGODB_COLLECTION]
 
         doc = {'device' : 'pythonuploader', 'date':DATETIME , 'dateString':datetime.datetime.fromtimestamp((DATETIME/1000)).strftime('%Y-%m-%d %H:%M:%S'), 'sgv':BG, 'direction':'Flat', 'type':'sgv', 'filtered':FILTERED, 'unfiltered':UNFILTERED, 'rssi':100, 'noise':0 }
     
@@ -86,7 +88,7 @@ def mongo_getBGReadings():
 def sendentriescal(row):
     try:
         client = pymongo.MongoClient(MONGODB_URI_LOCAL)
-        db = client['openapstest']
+        db = client[MONGODB_COLLECTION]
         
         
     

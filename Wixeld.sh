@@ -4,7 +4,7 @@
 
 # Start the service node
 start() {
-    cd /home/pi/Wixel
+    cd /home/edison/Wixel
     ./start.sh &1
     echo "Wixel Dienst wurde gestartet"
     
@@ -13,7 +13,7 @@ start() {
 stop() {
         
     kill $(cat /home/pi/Wixel/pid)
-    rm /home/pi/Wixel/pid
+    rm /home/edison/Wixel/pid
 
     echo "Wixel Dienst wurde beendet"
 }

@@ -55,12 +55,12 @@ from mongo import *
 
 
 # Display imports
-import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
+#import Adafruit_GPIO.SPI as SPI
+#import Adafruit_SSD1306
 
-import Image
-import ImageFont
-import ImageDraw
+#import Image
+#import ImageFont
+#import ImageDraw
 
 # Raspberry Pi pin configuration:
 RST = 24
@@ -76,14 +76,12 @@ PORT = 50005 # xdrip standard port
 
 
 
-my_TransmitterID="6DGTF";
-#my_TransmitterID="6BBL0";
 #my_TransmitterID="00000";
 
 Bridge_Tid="";
 
 # Eigenes PID file fuer Service
-PIDFILE='/home/pi/Wixel/pid'  
+PIDFILE='/home/edison/Wixel/pid'  
 
 
 mydata = { "TransmitterId":"0","_id":1,"CaptureDateTime":0,"RelativeTime":0,"ReceivedSignalStrength":0,"RawValue":0,"TransmissionId":0,"BatteryLife":0,"UploadAttempts":0,"Uploaded":0,"UploaderBatteryLife":0,"FilteredValue":0 }
@@ -192,7 +190,7 @@ def serialthread(dummy):
             # more complex code might be needed if the pi has other
             # ACM type devices.
             
-            ser = serial.Serial('/dev/ttyAMA0', 9600)
+            ser = serial.Serial('/dev/ttyMFD2', 9600)
             serial_line="00000"
 			
             if (firstrun==False):
@@ -280,24 +278,24 @@ def serialthread(dummy):
                     
                     
                     
-                    #BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
-                    BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.filtered_value)
+                    BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.age_adjusted_raw_value)
+                    #BGData.bg=xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.filtered_value)
                     print "Calib.slope 					 -> " + str(Calib.slope)
                     print "Calib.intercept 				 -> " + str(Calib.intercept)
                     print "BGData.age_adjusted_raw_value -> " + str(BGData.age_adjusted_raw_value)
                     print "BGData.filtered_value         -> " + str(BGData.filtered_value)
                     
                     print "BGData.bg 					 -> " + str(BGData.bg)
-                    
+                    print "BGData.bg  (filtered)         -> " + str(xdriplib.calcCGMVAL(Calib.slope,Calib.intercept,BGData.filtered_value))
                     BGData.write2db()
                     
                     mongo_getBGReadings()
-                    mongo_findTreatCall_Calib()
+                    #mongo_findTreatCall_Calib()
                     
                     xdriplib.find_new_curve()
                     xdriplib.find_new_raw_curve()
                     print "Neue Daten in die DB eingetragen ->  \n";
-                    sendScreen()
+                    #sendScreen()
 					
                 else:
                     print "Error Found Wrong ID->"+wixellib.dexcom_src_to_asc(mydata['TransmitterId'])+" MyID-> "+  my_TransmitterID +"\n";
@@ -372,12 +370,15 @@ outpidf = open(PIDFILE,"w")
 outpidf.write("%s"% pid)
 outpidf.flush()        # make sure it actually gets written out
 outpidf.close
-disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, dc=DC, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=8000000))
-disp.begin()
+
+os.system('systemctl stop serial-getty@ttyMFD2.service')
+
+#disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, dc=DC, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=8000000))
+#disp.begin()
 BG=0
 LASTBG=0
 db.initDB()
-sendScreen()
+#sendScreen()
 
 while 1:
     conn, addr = s.accept()
@@ -386,4 +387,6 @@ while 1:
     start_new_thread(clientthread ,(conn,))
  
 s.close()
+
+os.system('systemctl start serial-getty@ttyMFD2.service')
 

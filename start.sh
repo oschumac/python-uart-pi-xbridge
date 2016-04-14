@@ -1,3 +1,4 @@
-python /home/pi/Wixel/Wixel.py >>/home/pi/Wixel/Wixel.log 2>>/home/pi/Wixel/Wixel.log
+python /home/edison/Wixel/Wixel.py >>/home/edison/Wixel/Wixel.log 2>>/home/edison/Wixel/Wixel.log
+
 
 

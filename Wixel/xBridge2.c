@@ -1812,13 +1812,15 @@ void main()
 	while (getMs() < tmp_ms + 1000) {	
 //		waitDoingServices(50,0,1);
 //		printf_fast("P1_2 is %u\r\n",P1_2);
+
+
 		if(P1_2) break;
 	}
 	if(!P1_2) {
 		setFlag(XBRIDGE_HW,0);
 	}
 	//wait 1 seconds, just in case it needs to settle.
-	waitDoingServices(1000,0,0);
+	waitDoingServices(20000,0,0);
 	//initialise the command buffer
 	init_command_buff(&command_buff);
 	// Open the UART and set it up for comms to HM-10
@@ -1890,6 +1892,9 @@ void main()
 	setRadioRegistersInitFunc(dex_RadioSettings);
 	printf_fast("looking for %lu (%s)\r\n",settings.dex_tx_id, dexcom_src_to_ascii(settings.dex_tx_id));
 	channel=0;
+	
+	
+	// Ab hier geht's los.
 	while (1)
 	{
 		Dexcom_packet Pkt;

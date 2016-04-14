@@ -10,12 +10,6 @@ from struct import *
 
 import serial
 
-import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
-
-import Image
-import ImageFont
-import ImageDraw
 import wixellib
 import xdriplib
 #import BGReadings

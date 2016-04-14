@@ -12,7 +12,7 @@ from calibration import *
 import dateutil.parser
 from dateutil import tz
 
-MONGODB_URI_LOCAL = 'mongodb://user:passw@mongolab:123456/collectionname' 
+MONGODB_URI_LOCAL = 'mongodb://user:passw@mongolab:12345/collectionname' 
 MONGODB_COLLECTION = 'collectionname'
 
 

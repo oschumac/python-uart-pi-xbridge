@@ -6,16 +6,6 @@ Things working so far are wixel Python communication (I think needs a bit more t
 Sending data as wifi-wixel to xdrip.
 Calculate cgm Blood Glucose based of xdrip calc and hardcoded intercept and slope.
 
-Todo -> 3 Steps are in my mind
-
-1. Get a functional algorithm to calculate BG based on calibrations out of Mongodb -> canceled
-
-2. Start to generate an own calibration algorythm in the pi							-> done :-)
-   Would give the advantage for loopers to get BG from Bolus expert inputs out of the pump. -> to be done
-   Pi could calculate the next calalibration without any other user attention or any other devices -> to be done 
-
-3. Send data to mongo (BG,CAL)  -> to be done
-
 # Implemented functionality
 
 - calculate calibrations double calibration
@@ -23,22 +13,30 @@ Todo -> 3 Steps are in my mind
 - Start/Stop Sensor
 - All data stored in sqllite db
 - calculate CGM BG based on received raw data and determined calibration
+- upload entries to mongo
+- export data from sqllite2json
 
 
-# to get Started you will need to:
-1. deactivate ttyAMA0 on Kernel via raspconfig
+# If using rpi to get Started you will need to:
+1a. deactivate ttyAMA0 on Kernel via raspconfig
    Otherwise the one and only UART is used for Kernel messages and login
 
-2. Programm wixel xBridge2 with the small changes as descripted in the head of  Wixel.py.
-   Cause it es much easier in Python to use serial.readline. But this need <CR><LF> in the end of the Telegramm 
-   See -> https://github.com/jstevensog/wixel-sdk
+# If using Intel Edison you can use /dev/ttyMFD1
+1b. you have to change ser = serial.Serial('/dev/ttyMFD2', 9600) to ser = serial.Serial('/dev/ttyMFD1', 9600)
+   and change os.system('systemctl stop serial-getty@ttyMFD2.service') to #os.system('systemctl stop serial-getty@ttyMFD2.service')
+   
+# If using Intel Edison you can use /dev/ttyMFD1
+1c. Script will deaktivate Kernel Konsole on ttyMFD2 on startup.
+
+
+2. You can use xBridge2 excample or xBridgeOaps excample.
+   For best results use xBridgeOaps there is a bootup delay implemented to prevent edison to not boot while edison 
+   is sending beacon telegramms at startup to console ttyMFD2.
 
 3. Connect Wixel to pi via GPIO
-   See -> Hardware
+   See -> Hardware for rpi or See edison_hardware.pdf
 
 4. Use Wixel.py for test. Put your Transmitter ID as an constant in the Script.
-   You may have to uncommend sendScreen() and adafriut imports  
-   if you don't have a adafruit display atached to the pi. From my prospective it is very helpfull.
    
 5. Take the red pill and stay in Wonderland. :-)
 
@@ -56,4 +54,7 @@ Wixel RX  Pin 1_7 -> PI GPIO PIN  8 TX
 Wixel 3V3 Pin     -> PI GPIO Pin 17 3v3 Power
 
 Wixel GND Pin     -> PI GPIO Pin 14 GND
+
+
+
 
